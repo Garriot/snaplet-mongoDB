@@ -62,6 +62,7 @@ import           Snap.Core
 
 import           Snap.Snaplet.MongoDB.Instances
 import           Snap.Snaplet.MongoDB.Utils
+import           Snap.Snaplet.MongoDB.Generics (RecKey)
 
 import           System.IO.Pool
 import           Snap.Snaplet

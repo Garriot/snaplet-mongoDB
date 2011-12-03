@@ -1,0 +1,7 @@
+Snap Framework support for MongoDB as Snaplet
+
+Depends on Snap 0.7.* and <others>
+
+Based on work of Ozgun Ataman
+His Snap Extension for Snap < 0.6.* is here:
+https://github.com/ozataman/snap-extension-mongodb

@@ -119,11 +119,11 @@ data MongoDBSnaplet = MongoDBSnaplet {
 ------------------------------------------------------------------------------
 -- |
 class HasMongoDBState s where
-    getMongoDBState :: s -> MongoDBSnaplet
-    setMongoDBState :: MongoDBSnaplet -> s -> s
+    getMongoDBState :: Handler s s MongoDBSnaplet
+    setMongoDBState :: MongoDBSnaplet -> Handler s s ()
 
-    modifyMongoDBState :: (MongoDBSnaplet -> MongoDBSnaplet) -> s -> s
-    modifyMongoDBState f s = setMongoDBState (f $ getMongoDBState s) s
+    --modifyMongoDBState :: (MongoDBSnaplet -> MongoDBSnaplet) -> s -> s
+    --modifyMongoDBState s = setMongoDBState s getMongoDBState
 
 
 ------------------------------------------------------------------------------
@@ -178,22 +178,22 @@ mongoDBInit h n db =
 
 ------------------------------------------------------------------------------
 -- |
---instance HasMongoDBState s => MonadMongoDB (SnapExtend s) where
---  withDB run = do
---    (MongoDBState pool db) <- asks getMongoDBState
---    epipe <- liftIO $ runErrorT $ aResource pool
---    case epipe of
---      Left err -> return $ Left $ ConnectionFailure err
---      Right pipe -> do
---		liftIO (access pipe master db run)
+instance HasMongoDBState s => MonadMongoDB (Handler s s) where
+  withDB run = do
+    (MongoDBSnaplet pool db) <- getMongoDBState
+    epipe <- liftIO $ runErrorT $ aResource pool
+    case epipe of
+      Left err -> return $ Left $ ConnectionFailure err
+      Right pipe -> do
+		liftIO (access pipe master db run)
 
---  withDBUnsafe run = do
---    (MongoDBState pool db) <- asks getMongoDBState
---    epipe <- liftIO $ runErrorT $ aResource pool
---    case epipe of
---      Left err -> return $ Left $ ConnectionFailure err
---      Right pipe -> do
---		liftIO (access pipe UnconfirmedWrites db run)
+  withDBUnsafe run = do
+    (MongoDBSnaplet pool db) <- getMongoDBState
+    epipe <- liftIO $ runErrorT $ aResource pool
+    case epipe of
+      Left err -> return $ Left $ ConnectionFailure err
+      Right pipe -> do
+		liftIO (access pipe UnconfirmedWrites db run)
 
 
 ------------------------------------------------------------------------------

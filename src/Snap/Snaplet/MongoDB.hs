@@ -5,6 +5,9 @@ module Snap.Snaplet.MongoDB
   , MongoDBSnaplet(..)
   , HasMongoDBState(..)
 
+  , MongoValue (..)
+  , MongoEntity (..)
+
   , mongoDBInit
 
   , insert
@@ -28,6 +31,12 @@ module Snap.Snaplet.MongoDB
   , limit
   , orderAsc
   , orderDesc
+
+  , objid2bs
+  , bs2objid
+  , bs2objid'
+  , bs2cs
+  , getObjId
    
   , module Snap.Snaplet.MongoDB.FilterOps
   , module Snap.Snaplet.MongoDB.MongoEntity
@@ -49,7 +58,13 @@ import           Control.Monad.Error
 import           Data.Bson ((=:))
 import qualified Data.Bson as BSON
 import qualified Data.UString as US
-import           Data.Maybe (catMaybes)
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as B8
+import qualified Data.CompactString.Internal as CSI
+import           Data.Maybe (catMaybes, fromJust)
+import qualified Data.Map as Map
+import           Numeric (showHex, readHex)
+import           Safe
 import           Snap.Snaplet.MongoDB.FilterOps
 import           Snap.Snaplet.MongoDB.MongoEntity
 import           Snap.Snaplet.MongoDB.MongoValue
@@ -269,6 +284,41 @@ fetchKeyValue doc = do
         _ -> throwError $ MongoDB.QueryFailure 1000 "Expected _id field to be an ObjectId in result of selection"
     Nothing ->
       throwError $ MongoDB.QueryFailure 1000 "Expected to find an _id field in result of selection"
+
+
+------------------------------------------------------------------------------
+-- | Convert 'ObjectId' into 'ByteString'
+objid2bs :: ObjectId -> BS.ByteString
+objid2bs (Oid a b) = B8.pack . showHex a . showChar '-' . showHex b $ ""
+
+
+------------------------------------------------------------------------------
+-- | Convert 'ByteString' into 'ObjectId'
+bs2objid :: BS.ByteString -> Maybe ObjectId
+bs2objid bs = do
+  case B8.split '-' bs of
+    (a':b':_) -> do
+      a <- fmap fst . headMay . readHex . B8.unpack $ a'
+      b <- fmap fst . headMay . readHex . B8.unpack $ b'
+      return $ Oid a b
+    _ -> Nothing
+
+------------------------------------------------------------------------------
+-- | Like 'bs2objid', but may blow with an error if the 'ByteString' can't be
+-- converted to an 'ObjectId'
+bs2objid' :: BS.ByteString -> ObjectId
+bs2objid' = fromJust . bs2objid
+
+
+bs2cs :: BS.ByteString -> US.UString
+bs2cs = CSI.CS
+
+
+------------------------------------------------------------------------------
+-- | If the 'Document' has an 'ObjectId' in the given field, return it as
+-- 'ByteString'
+getObjId :: US.UString -> BSON.Document -> Maybe BS.ByteString
+getObjId v d = MongoDB.lookup v d >>= fmap objid2bs
 
 
 dummyFromKey :: Key a -> a

@@ -2,8 +2,49 @@ Snap Framework support for MongoDB as Snaplet
 
 Depends on Snap 0.7.* and <others>
 
-Based on work of Ozgun Ataman
-His Snap Extension for Snap < 0.6.* is here:
-https://github.com/ozataman/snap-extension-mongodb
+Based on work of Massive Tactical
 
-Code intended for review and refactor.
+Their MongoDB helper package ( mostly used with Yesod ) is there:
+https://github.com/MassiveTactical/mt-mongodb
+
+Usage ( assuming you've used snap init to layout your app ):
+
+In Application.hs:
+```Haskell
+import Snap.Snaplet.MongoDB
+```
+
+then add mongoDB snaplet to App state:
+```Haskell
+data App = App
+    { _heist :: Snaplet (Heist App)
+    , _mongoDB :: Snaplet MongoDBSnaplet
+    ...
+```
+
+then make App an instance of HasMongoDBState:
+```Haskell
+instance HasMongoDBState App where
+  getMongoDBState = with mongoDB Snap.get
+  setMongoDBState s = undefined -- with mongo $ puts s
+```
+
+next in Site.hs ( in app = ...):
+```Haskell
+m <- nestSnaplet "mongoDB" mongoDB $ mongoDBInit (host "localhost") 12 "my_db"
+```
+and don't forget to pass this "m" to your App data constructor..
+
+... and voila!
+
+Now you've got "withDB" function which "lifts" your Handler Monad
+so You can use db functions ( as described at mt-mongodb pages ).
+
+ex:
+```Haskell
+some_handler :: Handler App App ()
+some_handler = do
+  ret <- withDB $ select [mongo| {} |][limit 10]
+  case ret of
+    ...
+```

@@ -7,7 +7,7 @@ Name:                snaplet-mongoDB
 -- The package version. See the Haskell package versioning policy
 -- (http://www.haskell.org/haskellwiki/Package_versioning_policy) for
 -- standards guiding when and how versions should be incremented.
-Version:             0.1
+Version:             0.2
 
 -- A short (one-line) description of the package.
 Synopsis:            Snap Framework MongoDB support as Snaplet
@@ -46,13 +46,13 @@ Cabal-version:       >=1.2
 Library
   hs-source-dirs: src
 
-  Exposed-modules:
-      Snap.Snaplet.MongoDB
-    , Snap.Snaplet.MongoDB.Generics
-
-  Other-modules:
-      Snap.Snaplet.MongoDB.Instances
-    , Snap.Snaplet.MongoDB.Utils
+  library
+  exposed-modules:  Snap.Snaplet.MongoDB
+                  , Snap.Snaplet.MongoDB.Template
+                  , Snap.Snaplet.MongoDB.FilterOps
+                  , Snap.Snaplet.MongoDB.MongoEntity
+                  , Snap.Snaplet.MongoDB.MongoValue
+                  , Snap.Snaplet.MongoDB.Parse
   
   -- Packages needed in order to build this package.
   Build-depends:
@@ -68,7 +68,10 @@ Library
     snap == 0.7.*,
     snap-core == 0.7.*,
     text >= 0.11 && < 0.12,
-    time >= 1.1 && < 1.5
+    time >= 1.1 && < 1.5,
+    parsec == 3.1.1,
+    haskell-src-exts == 1.11.1,
+    template-haskell
   
   -- Extra tools (e.g. alex, hsc2hs, ...) needed to build the source.
   -- Build-tools:    

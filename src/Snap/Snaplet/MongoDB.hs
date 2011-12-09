@@ -76,6 +76,9 @@ import           Database.MongoDB.Query (Action, Failure(..), Database, access, 
 import qualified Database.MongoDB.Connection as MongoDB
 import qualified System.IO.Pool as MPool
 
+import           Control.Monad.CatchIO hiding (Handler)
+
+instance Exception String
 
 ------------------------------------------------------------------------------
 -- | The 'MonadMongoDB' class. Minimal complete definition:
@@ -93,7 +96,7 @@ class MonadIO m => MonadMongoDB m where
   withDB' :: Action IO a -> m a
   withDB' run = do
     r <- withDB run 
-    either (error . show) return r
+    either (throw . show) return r
 
 
 data MongoDBSnaplet = MongoDBSnaplet {
@@ -308,7 +311,6 @@ bs2objid bs = do
 -- converted to an 'ObjectId'
 bs2objid' :: BS.ByteString -> ObjectId
 bs2objid' = fromJust . bs2objid
-
 
 bs2cs :: BS.ByteString -> US.UString
 bs2cs = CSI.CS

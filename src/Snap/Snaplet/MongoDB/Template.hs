@@ -1,16 +1,5 @@
 {-# LANGUAGE TemplateHaskell, QuasiQuotes #-}
--- |
--- Module      : Snap.Snaplet.MongoDB.Template
--- Description : Template Haskell functions for creating MongoDB entities.
--- Copyright   : (C) 2011 Massive Tactical Limited
--- License     : BSD3
---
--- Maintainer  : Blake Rain <blake.rain@massivetactical.com>
--- Stability   : Provisional
--- Portability : Unknown
---
--- Various Template Haskell functions for creating MongoDB entities.
---
+
 
 module Snap.Snaplet.MongoDB.Template
        ( asMongoEntity

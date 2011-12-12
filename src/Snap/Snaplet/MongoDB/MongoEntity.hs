@@ -1,16 +1,4 @@
 {-# LANGUAGE TypeFamilies, MultiParamTypeClasses, FlexibleContexts #-}
--- |
--- Module : Snap.Snaplet.MongoDB.MongoEntity
--- Description : Provides the MongoEntity type class.
--- Copyright : (C) 2011 Massive Tactical Limited
--- License : BSD3
---
--- Maintainer : Blake Rain <blake.rain@massivetactical.com>
--- Stability : Provisional
--- Portability : Portable
---
--- Provides the MongoEntity type class.
---
 
 module Snap.Snaplet.MongoDB.MongoEntity
        ( MongoEntity (..)

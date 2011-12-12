@@ -1,16 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
--- |
--- Module      : Snap.Snaplet.MongoDB.FilterOps
--- Description : Provides the filtering operations.
--- Copyright   : (C) 2011 Massive Tactical Limited
--- License     : BSD3
---
--- Maintainer  : Blake Rain <blake.rain@massivetactical.com>
--- Stability   : Provisional
--- Portability : Portable
---
--- Provides the filtering operations.
---
 
 module Snap.Snaplet.MongoDB.FilterOps
        ( FilterOp

@@ -1,17 +1,5 @@
 {-# LANGUAGE OverloadedStrings, MultiParamTypeClasses, FlexibleInstances, FlexibleContexts, TypeFamilies #-}
 {-# LANGUAGE TupleSections, TypeSynonymInstances, RankNTypes, ScopedTypeVariables, IncoherentInstances #-}
--- |
--- Module      : Snap.Snaplet.MongoDB.MongoValue
--- Description : Provides the MongoValue type class and basic instances.
--- Copyright   : (C) 2011 Massive Tactical Limited
--- License     : BSD3
---
--- Maintainer  : Blake Rain <blake.rain@massivetactical.com>
--- Stability   : Provisional
--- Portability : Unknown
---
--- Provides the MongoValue type class and some basic instances.
---
 
 module Snap.Snaplet.MongoDB.MongoValue
        ( MongoValue (..)

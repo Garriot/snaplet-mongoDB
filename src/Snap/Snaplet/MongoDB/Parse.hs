@@ -1,17 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields #-}
--- |
--- Module      : Snap.Snaplet.MongoDB.Parse
--- Description : Parser for MongoDB documents.
--- Copyright   : (C) 2011 Massive Tactical Limited
--- License     : BSD3
---
--- Maintainer  : Blake Rain <blake.rain@massivetactical.com>
--- Stability   : Provisional
--- Portability : Portable
---
--- Provides a quasi-quote parser for MongoDB documents.
---
+
 
 module Snap.Snaplet.MongoDB.Parse
        ( mongo

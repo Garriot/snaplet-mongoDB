@@ -1,12 +1,11 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Snap.Snaplet.MongoDB
   ( 
     MonadMongoDB(..)
     
   , MongoDBSnaplet(..)
   , HasMongoDBState(..)
-
-  , MongoValue (..)
-  , MongoEntity (..)
 
   , mongoDBInit
 
@@ -53,8 +52,8 @@ import           Snap.Snaplet
 import           Prelude hiding (lookup, or)
 import           Control.Applicative
 import           Control.Monad
-import           Control.Monad.MVar
 import           Control.Monad.Error
+import           Control.Monad.Trans.Control (MonadBaseControl)
 import           Data.Bson ((=:))
 import qualified Data.Bson as BSON
 import qualified Data.UString as US
@@ -237,7 +236,7 @@ orderDesc f q = q { MongoDB.sort = (filterFieldName (f undefined) =: ((-1) :: In
 -- /Note/: in the quasi-quotation the names of the fields correspond to the fields stored in the /database/, rather than
 -- the fields of the record structure.
 --
-select :: (Functor m, MonadControlIO m, MongoEntity a) => Document a -> [SelectorOption] -> MongoDB.Action m [(Key a, a)]
+select :: (MonadIO m, Functor m, MonadBaseControl IO m, MongoEntity a) => Document a -> [SelectorOption] -> MongoDB.Action m [(Key a, a)]
 select document options = do
   cursor  <- MongoDB.find (foldr ($) (MongoDB.select (fromDocument document) (collectionName (dummyFromDocument document))) options)
   objects <- MongoDB.rest cursor
@@ -245,7 +244,7 @@ select document options = do
   return $ catMaybes values
 
 -- | Similar to 'select', only yielding a single result.
-selectOne :: (Functor m, MonadControlIO m, MongoEntity a) => Document a -> [SelectorOption] -> MongoDB.Action m (Maybe (Key a, a))
+selectOne :: (MonadIO m, Functor m, MonadBaseControl IO m, MongoEntity a) => Document a -> [SelectorOption] -> MongoDB.Action m (Maybe (Key a, a))
 selectOne document options = do
   result <- MongoDB.findOne (foldr ($) (MongoDB.select (fromDocument document) (collectionName (dummyFromDocument document))) options)
   case result of
@@ -274,7 +273,7 @@ updates :: (MongoEntity a) => [UpdateOp] -> Document a
 updates = toDocument
 
 
-fetchKeyValue :: (Functor m, MonadControlIO m, MongoEntity a) => BSON.Document -> MongoDB.Action m (Maybe (Key a, a))
+fetchKeyValue :: (Functor m, MonadBaseControl IO m, MongoEntity a) => BSON.Document -> MongoDB.Action m (Maybe (Key a, a))
 fetchKeyValue doc = do
   case BSON.look "_id" doc of
     Just i ->

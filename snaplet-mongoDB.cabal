@@ -77,7 +77,7 @@ Library
     template-haskell,
     -- transformers-base >= 0.4.1 && < 0.5,
     monad-control >= 0.3.1 && < 0.4, 
-    MonadCatchIO-transformers == 0.2.2.2
+    MonadCatchIO-transformers >= 0.2 && < 0.3
   
   -- Extra tools (e.g. alex, hsc2hs, ...) needed to build the source.
   -- Build-tools:    

@@ -34,7 +34,7 @@ module Snap.Snaplet.MongoDB
   , objid2bs
   , bs2objid
   , bs2objid'
-  , bs2cs
+  , bs2text
   , getObjId
    
   , module Snap.Snaplet.MongoDB.FilterOps
@@ -56,10 +56,10 @@ import           Control.Monad.Error
 import           Control.Monad.Trans.Control (MonadBaseControl)
 import           Data.Bson ((=:))
 import qualified Data.Bson as BSON
-import qualified Data.UString as US
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
-import qualified Data.CompactString.Internal as CSI
 import           Data.Maybe (catMaybes, fromJust)
 import qualified Data.Map as Map
 import           Numeric (showHex, readHex)
@@ -112,7 +112,7 @@ class HasMongoDBState s where
     --modifyMongoDBState :: (MongoDBSnaplet -> MongoDBSnaplet) -> s -> s
     --modifyMongoDBState s = setMongoDBState s getMongoDBState
 
-mongoDBInit :: MongoDB.Host -> Int -> US.UString -> SnapletInit b MongoDBSnaplet
+mongoDBInit :: MongoDB.Host -> Int -> T.Text -> SnapletInit b MongoDBSnaplet
 mongoDBInit h n db =
   makeSnaplet "mongoDB" "MongoDB abstraction" Nothing $ do
     pool <- liftIO $ MPool.newPool (factoryForHost h) n
@@ -311,14 +311,14 @@ bs2objid bs = do
 bs2objid' :: BS.ByteString -> ObjectId
 bs2objid' = fromJust . bs2objid
 
-bs2cs :: BS.ByteString -> US.UString
-bs2cs = CSI.CS
+bs2text :: BS.ByteString -> T.Text
+bs2text = TE.decodeUtf8
 
 
 ------------------------------------------------------------------------------
 -- | If the 'Document' has an 'ObjectId' in the given field, return it as
 -- 'ByteString'
-getObjId :: US.UString -> BSON.Document -> Maybe BS.ByteString
+getObjId :: T.Text -> BSON.Document -> Maybe BS.ByteString
 getObjId v d = MongoDB.lookup v d >>= fmap objid2bs
 
 

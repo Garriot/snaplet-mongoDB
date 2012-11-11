@@ -273,7 +273,7 @@ mapCC (H.CCall  ) = CCall
 
 mapSafety :: H.Safety -> Safety
 mapSafety (H.PlayRisky ) = Unsafe
-mapSafety (H.PlaySafe t) = if t then Threadsafe else Safe
+mapSafety (H.PlaySafe t) = if t then Interruptible else Safe
                                                       
 matchName :: H.Match -> Name
 matchName (H.Match _ name _ _ _ _) = mapName name

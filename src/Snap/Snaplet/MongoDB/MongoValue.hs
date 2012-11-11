@@ -21,7 +21,6 @@ import qualified Data.Bson as BSON
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
 import           Data.Char
-import qualified Data.CompactString.UTF8 as CS
 import           Data.Int
 import           Data.List (find)
 import qualified Data.Map as M
@@ -74,7 +73,7 @@ nullObjectId = Oid 0 0
 
 lookMaybe :: T.Text -> BSON.Document -> Maybe BSON.Value
 lookMaybe name doc =
-  let name' = textToCompactString name in maybe Nothing (Just . BSON.value) $ find ((name' ==) . BSON.label) doc
+  maybe Nothing (Just . BSON.value) $ find ((name ==) . BSON.label) doc
 
 lookupThrow :: (Applicative m, Monad m, MongoValue a) => T.Text -> BSON.Document -> ErrorT String m a
 lookupThrow name doc =
@@ -101,22 +100,22 @@ instance MongoValue Bool where
   fromValue (BSON.Bool x)  = pure x
   fromValue v              = expected "boolean" v
 
-instance MongoValue BSON.UString where
-  toValue                              = BSON.String
+instance MongoValue String where
+  toValue                              = BSON.String . T.pack
+  fromValue (BSON.String x           ) = pure $! T.unpack x
+  fromValue (BSON.Sym (BSON.Symbol x)) = pure $! T.unpack x
+  fromValue v                          = expected "string or symbol" v
+
+instance MongoValue T.Text where
+  toValue                              = BSON.String 
   fromValue (BSON.String x           ) = pure x
   fromValue (BSON.Sym (BSON.Symbol x)) = pure x
   fromValue v                          = expected "string or symbol" v
 
-instance MongoValue T.Text where
-  toValue                              = BSON.String . textToCompactString
-  fromValue (BSON.String x           ) = pure $! compactStringToText x
-  fromValue (BSON.Sym (BSON.Symbol x)) = pure $! compactStringToText x
-  fromValue v                          = expected "string or symbol" v
-
 instance MongoValue LT.Text where
-  toValue                              = BSON.String . lazyTextToCompactString
-  fromValue (BSON.String x           ) = pure $! compactStringToLazyText x
-  fromValue (BSON.Sym (BSON.Symbol x)) = pure $! compactStringToLazyText x
+  toValue                              = BSON.String . LT.toStrict
+  fromValue (BSON.String x           ) = pure $! LT.fromStrict x
+  fromValue (BSON.Sym (BSON.Symbol x)) = pure $! LT.fromStrict x
   fromValue v                          = expected "string or symbol" v
 
 instance MongoValue (Maybe BSON.Value) where
@@ -140,8 +139,8 @@ instance (MongoValue a) => MongoValue [a] where
   fromValue v              = expected "array" v
 
 instance (MongoValue a, MongoValue b) => MongoValue (Either a b) where
-  toValue (Left  x) = BSON.Doc [ "_type" := (BSON.String $ BSON.u "Left" ), "value" := toValue x ]
-  toValue (Right y) = BSON.Doc [ "_type" := (BSON.String $ BSON.u "Right"), "value" := toValue y ]
+  toValue (Left  x) = BSON.Doc [ "_type" := (BSON.String $ T.pack "Left" ), "value" := toValue x ]
+  toValue (Right y) = BSON.Doc [ "_type" := (BSON.String $ T.pack "Right"), "value" := toValue y ]
   
   fromValue (BSON.Doc doc) = do
     side <- fmap (map toLower) $ BSON.lookup "_type" doc
@@ -256,11 +255,11 @@ instance (MongoValue a, MongoValue b, MongoValue c) => MongoValue (a, b, c) wher
 -- @{ cat: 1, dog: 2, mat: 3 }@.
 --
 instance (MongoValue val) => MongoValue (M.Map T.Text val) where
-  toValue m = BSON.Doc $ map (\(k, v) -> textToCompactString k := toValue v) $ M.toList m
+  toValue m = BSON.Doc $ map (\(k, v) -> k := toValue v) $ M.toList m
   fromValue (BSON.Doc m) = do
     elements <- mapM (\ (k := v) -> do
                          val <- fromValue v
-                         pure (compactStringToText k, val)) m
+                         pure (k, val)) m
     pure $! M.fromList elements
   fromValue v = expected "Document" v
 
@@ -271,34 +270,18 @@ instance (MongoValue val) => MongoValue (M.Map T.Text val) where
 -- @{ cat: 1, dog: 2, mat: 3 }@.
 --
 instance (MongoValue val) => MongoValue (M.Map LT.Text val) where
-  toValue m = BSON.Doc $ map (\(k, v) -> lazyTextToCompactString k := toValue v) $ M.toList m
+  toValue m = BSON.Doc $ map (\(k, v) -> LT.toStrict k := toValue v) $ M.toList m
   fromValue (BSON.Doc m) = do
     elements <- mapM (\ (k := v) -> do
                          val <- fromValue v
-                         pure (compactStringToLazyText k, val)) m
-    pure $! M.fromList elements
+                         pure ( LT.fromStrict k, val)) m
+    pure $! M.fromList $! elements
   fromValue v = expected "Document" v
 
 
 instance (Ord key, MongoValue key, MongoValue val) => MongoValue (M.Map key val) where
   toValue = toValue . M.toList
   fromValue v = M.fromList <$> fromValue v
-    
-
-
-compactStringToText :: CS.CompactString -> T.Text
-compactStringToText = T.decodeUtf8 . CS.toByteString
-
-textToCompactString :: T.Text -> CS.CompactString
-textToCompactString = CS.fromByteString_ . T.encodeUtf8
-
-compactStringToLazyText :: CS.CompactString -> LT.Text
-compactStringToLazyText =
-  LT.decodeUtf8 . (\x -> BSL.fromChunks [x]) . CS.toByteString
-
-lazyTextToCompactString :: LT.Text -> CS.CompactString
-lazyTextToCompactString =
-  CS.fromByteString_ . BS.concat . BSL.toChunks . LT.encodeUtf8
 
 -- Local Variables:
 -- mode                  : Haskell
